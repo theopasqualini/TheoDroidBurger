@@ -1,18 +1,27 @@
 package fr.isen.pasqualini.theodroidburger
 
+import android.app.TimePickerDialog
 import android.os.Bundle
+import android.widget.ArrayAdapter
+import android.widget.Spinner
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -26,7 +35,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringArrayResource
@@ -36,28 +44,36 @@ import androidx.compose.ui.unit.dp
 import fr.isen.pasqualini.theodroidburger.ui.theme.TheoDroidBurgerTheme
 import fr.isen.pasqualini.theodroidburger.ui.theme.secondary
 import androidx.compose.material3.DropdownMenuItem
-
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.TextFieldValue
+import java.util.Calendar
+import androidx.compose.ui.res.painterResource
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
             TheoDroidBurgerTheme {
-                // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    CommandeBurger{}
+                    CommandeBurger {}
                 }
             }
         }
     }
 }
 
-
-
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CommandeBurger(onValidateClicked: () -> Unit) {
     Column(
@@ -72,13 +88,14 @@ fun CommandeBurger(onValidateClicked: () -> Unit) {
             painter = painterResource(id = R.drawable.logo),
             contentDescription = "Logo de la société",
             modifier = Modifier
-                .size(120.dp)
+                .size(300.dp)
                 .padding(bottom = 16.dp)
         )
 
         // Titre de la commande
         Text(
             text = "Commande de Burger",
+            fontSize = 24.sp,
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
@@ -89,7 +106,6 @@ fun CommandeBurger(onValidateClicked: () -> Unit) {
         var numeroTelephone by remember { mutableStateOf("") }
         var heureLivraison by remember { mutableStateOf("") }
         var selectedBurger by remember { mutableStateOf("") }
-
 
         OutlinedTextField(
             value = nom,
@@ -108,7 +124,7 @@ fun CommandeBurger(onValidateClicked: () -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 8.dp),
-            colors = textFieldColors(),
+            colors = textFieldColors()
         )
 
         OutlinedTextField(
@@ -118,52 +134,116 @@ fun CommandeBurger(onValidateClicked: () -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 8.dp),
-            colors = textFieldColors(),
+            colors = textFieldColors()
         )
 
         OutlinedTextField(
             value = numeroTelephone,
             onValueChange = { numeroTelephone = it },
             label = { Text("Numéro de téléphone") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 8.dp),
             colors = textFieldColors()
         )
 
+        val context = LocalContext.current
+        val burger_list = arrayOf("Burger du chef", "Cheese Burger", "Burger Montagnard", "Burger Italien", "Burgr Végétarien")
+        var expanded by remember { mutableStateOf(false) }
+        var selectedText by remember { mutableStateOf(burger_list[0]) }
 
-
-        OutlinedTextField(
-            value = heureLivraison,
-            onValueChange = { heureLivraison = it },
-            label = { Text("Heure de livraison (HH:MM)") },
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp),
-            colors = textFieldColors()
-        )
-        Box(modifier = Modifier.fillMaxWidth()) {
-            Text("Sélectionnez votre burger:")
-            // Utilisation de DropdownMenu pour afficher la liste des burgers à sélectionner
-            DropdownMenu(
-                expanded = false, // Initialisé à false pour ne pas afficher la liste par défaut
-                onDismissRequest = { /* No action */ },
-                modifier = Modifier.fillMaxWidth(), // Modificateur pour définir la largeur du menu déroulant
+        ) {
+            ExposedDropdownMenuBox(
+                expanded = expanded,
+                onExpandedChange = {
+                    expanded = !expanded
+                }
             ) {
-                val burgerList = stringArrayResource(id = R.array.burger_list)
-                burgerList.forEach { burger ->
-                    DropdownMenuItem(
-                        onClick = {
-                            selectedBurger = burger // Met à jour le burger sélectionné
-                        },
-                        modifier = Modifier.fillMaxWidth(), // Modificateur pour définir la largeur de chaque élément du menu
-                    ) {
+                TextField(
+                    value = selectedText,
+                    onValueChange = {},
+                    readOnly = true,
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth(),
+                    colors = textFieldColors()
+                )
 
+                ExposedDropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                ) {
+                    burger_list.forEach { item ->
+                        DropdownMenuItem(
+                            text = { Text(text = item) },
+                            onClick = {
+                                selectedText = item
+                                expanded = false
+                                Toast.makeText(context, item, Toast.LENGTH_SHORT).show()
+                            }
+                        )
                     }
                 }
             }
         }
+
+        // Fetching local context
+        val mContext = LocalContext.current
+
+        // Declaring and initializing a calendar
+        val mCalendar = Calendar.getInstance()
+        val mHour = mCalendar[Calendar.HOUR_OF_DAY]
+        val mMinute = mCalendar[Calendar.MINUTE]
+
+        // Value for storing time as a string
+        val mTime = remember { mutableStateOf("") }
+
+        // Creating a TimePicker dialog
+        val mTimePickerDialog = TimePickerDialog(
+            mContext,
+            { _, mHour : Int, mMinute: Int ->
+                mTime.value = "$mHour:$mMinute"
+            }, mHour, mMinute, false
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Spacer(modifier = Modifier.width(8.dp))
+            // Display selected time
+            OutlinedTextField(
+                value = mTime.value,
+                onValueChange = { /* Nothing */ },
+                readOnly = true,
+                label = { Text("Heure sélectionnée") },
+                modifier = Modifier.weight(1f),
+                colors = textFieldColors()
+
+            )
+
+            // Add a spacer
+            Spacer(modifier = Modifier.width(10.dp))
+
+            // Button for displaying the TimePicker
+            Button(
+                onClick = { mTimePickerDialog.show() },
+                colors = ButtonDefaults.buttonColors(contentColor  = Color(0XFF0F9D58)),
+                modifier = Modifier.size(60.dp)
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.orloge), // Remplacez "votre_image" par le nom de votre image dans le dossier res/drawable
+                    contentDescription = "Choisir une heure de livraison",
+                    modifier = Modifier.size(512.dp) // Taille de l'image
+                )
+            }
+            Spacer(modifier = Modifier.width(8.dp))    }
+
         Button(
             onClick = onValidateClicked, // Appel de la fonction de validation lorsque le bouton est cliqué
             modifier = Modifier
@@ -172,19 +252,19 @@ fun CommandeBurger(onValidateClicked: () -> Unit) {
         ) {
             Text("Valider")
         }
-
-
-
     }
-
 }
 
-fun DropdownMenuItem(onClick: () -> Unit, modifier: Modifier, interactionSource: () -> Unit) {
-    TODO("Not yet implemented")
-}
 
+
+
+
+
+
+
+@Preview(showBackground = true)
 @Composable
-fun PreviewCommandeBurger() {
+fun DefaultPreview() {
     CommandeBurger(onValidateClicked = {})
 }
 
