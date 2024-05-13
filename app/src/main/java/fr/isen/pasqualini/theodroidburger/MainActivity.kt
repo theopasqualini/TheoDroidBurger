@@ -125,6 +125,8 @@ fun CommandeBurger(onValidateClicked: () -> Unit) {
         var isAdresseEmpty by remember { mutableStateOf(false) }
         var isNumeroTelephoneEmpty by remember { mutableStateOf(false) }
         var isHeureLivraisonEmpty by remember { mutableStateOf(false) }
+        var isBurgerEmpty by remember { mutableStateOf(false) }
+
 
 
         OutlinedTextField(
@@ -191,14 +193,13 @@ fun CommandeBurger(onValidateClicked: () -> Unit) {
         var selectedText by remember { mutableStateOf(burgerlist[0]) }
 
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
+            modifier = Modifier.fillMaxWidth()
         ) {
             ExposedDropdownMenuBox(
                 expanded = expanded,
                 onExpandedChange = {
                     expanded = !expanded
-                }
+                },
             ) {
                 TextField(
                     value = selectedText,
@@ -208,6 +209,7 @@ fun CommandeBurger(onValidateClicked: () -> Unit) {
                     modifier = Modifier
                         .menuAnchor()
                         .fillMaxWidth(),
+                    isError = isBurgerEmpty,
                     colors = textFieldColors()
                 )
 
@@ -261,9 +263,9 @@ fun CommandeBurger(onValidateClicked: () -> Unit) {
                 onValueChange = { /* Nothing */ },
                 readOnly = true,
                 label = { Text("Heure sélectionnée") },
+                isError = isHeureLivraisonEmpty, // Utilisation de la propriété d'erreur
                 modifier = Modifier.weight(1f),
                 colors = textFieldColors()
-
             )
 
             // Add a spacer
