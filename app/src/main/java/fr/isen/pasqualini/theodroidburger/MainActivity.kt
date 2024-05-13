@@ -120,21 +120,36 @@ fun CommandeBurger(onValidateClicked: () -> Unit) {
         var numeroTelephone by remember { mutableStateOf("") }
         var heureLivraison by remember { mutableStateOf("") }
         var selectedBurger by remember { mutableStateOf("") }
+        var isNomEmpty by remember { mutableStateOf(false) }
+        var isPrenomEmpty by remember { mutableStateOf(false) }
+        var isAdresseEmpty by remember { mutableStateOf(false) }
+        var isNumeroTelephoneEmpty by remember { mutableStateOf(false) }
+        var isHeureLivraisonEmpty by remember { mutableStateOf(false) }
+
 
         OutlinedTextField(
             value = nom,
-            onValueChange = { nom = it },
+            onValueChange = {
+                nom = it
+                isNomEmpty = it.isEmpty()
+            },
             label = { Text("Nom") },
+            isError = isNomEmpty,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 8.dp),
             colors = textFieldColors()
         )
 
+
         OutlinedTextField(
             value = prenom,
-            onValueChange = { prenom = it },
+            onValueChange = {
+                prenom = it
+                isPrenomEmpty = it.isEmpty()
+            },
             label = { Text("Prénom") },
+            isError = isPrenomEmpty,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 8.dp),
@@ -143,8 +158,12 @@ fun CommandeBurger(onValidateClicked: () -> Unit) {
 
         OutlinedTextField(
             value = adresse,
-            onValueChange = { adresse = it },
+            onValueChange = {
+                adresse = it
+                isAdresseEmpty = it.isEmpty()
+            },
             label = { Text("Adresse") },
+            isError = isAdresseEmpty,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 8.dp),
@@ -153,8 +172,12 @@ fun CommandeBurger(onValidateClicked: () -> Unit) {
 
         OutlinedTextField(
             value = numeroTelephone,
-            onValueChange = { numeroTelephone = it },
+            onValueChange = {
+                numeroTelephone = it
+                isNumeroTelephoneEmpty = it.isEmpty()
+            },
             label = { Text("Numéro de téléphone") },
+            isError = isNumeroTelephoneEmpty,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), // Limite le clavier aux chiffres
             modifier = Modifier
                 .fillMaxWidth()
@@ -297,6 +320,11 @@ fun CommandeBurger(onValidateClicked: () -> Unit) {
                 } else {
                     // Affichage d'un message d'erreur si des champs obligatoires sont vides
                     Toast.makeText(context, "Veuillez remplir tous les champs obligatoires", Toast.LENGTH_SHORT).show()
+                    isNomEmpty = nom.isEmpty()
+                    isPrenomEmpty = prenom.isEmpty()
+                    isAdresseEmpty = adresse.isEmpty()
+                    isNumeroTelephoneEmpty = numeroTelephone.isEmpty()
+                    isHeureLivraisonEmpty = heureLivraison.isEmpty()
                 }
             },
             modifier = Modifier
