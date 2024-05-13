@@ -422,28 +422,3 @@ fun envoyerCommandeAuServeur(
 
 
 
-@Composable
-fun JsonDisplay(jsonContent: String) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-            .size(50.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Text(
-                text = "JSON Content",
-                fontWeight = FontWeight.Bold,
-                fontSize = 20.sp,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-            Text(
-                text = jsonContent,
-                fontSize = 16.sp,
-                modifier = Modifier.verticalScroll(rememberScrollState())
-            )
-        }
-    }
-}
