@@ -2,8 +2,7 @@ package fr.isen.pasqualini.theodroidburger
 
 import android.app.TimePickerDialog
 import android.os.Bundle
-import android.widget.ArrayAdapter
-import android.widget.Spinner
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -15,14 +14,16 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -37,7 +38,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -48,17 +48,27 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.font.FontWeight
+import kotlinx.coroutines.launch
 import java.util.Calendar
-import androidx.compose.ui.res.painterResource
+import org.json.JSONObject
+import java.io.IOException
+import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.net.HttpURLConnection
+import java.net.URL
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+
 
         setContent {
             TheoDroidBurgerTheme {
@@ -66,7 +76,13 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    CommandeBurger {}
+                    var jsonContent by remember { mutableStateOf("") }
+                    Column {
+                        CommandeBurger {}
+                        JsonDisplay(jsonContent)
+                    }
+
+
                 }
             }
         }
@@ -76,6 +92,11 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CommandeBurger(onValidateClicked: () -> Unit) {
+    var envoiReussi by remember { mutableStateOf(false) }
+    var alertShown by remember { mutableStateOf(false) }
+    var jsonContent by remember { mutableStateOf("") }
+
+
     Column(
         modifier = Modifier
             .padding(16.dp)
@@ -141,6 +162,7 @@ fun CommandeBurger(onValidateClicked: () -> Unit) {
             value = numeroTelephone,
             onValueChange = { numeroTelephone = it },
             label = { Text("Numéro de téléphone") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), // Limite le clavier aux chiffres
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 8.dp),
@@ -148,9 +170,9 @@ fun CommandeBurger(onValidateClicked: () -> Unit) {
         )
 
         val context = LocalContext.current
-        val burger_list = arrayOf("Burger du chef", "Cheese Burger", "Burger Montagnard", "Burger Italien", "Burgr Végétarien")
+        val burgerlist = arrayOf("Burger du chef", "Cheese Burger", "Burger Montagnard", "Burger Italien", "Burgr Végétarien")
         var expanded by remember { mutableStateOf(false) }
-        var selectedText by remember { mutableStateOf(burger_list[0]) }
+        var selectedText by remember { mutableStateOf(burgerlist[0]) }
 
         Box(
             modifier = Modifier
@@ -177,7 +199,7 @@ fun CommandeBurger(onValidateClicked: () -> Unit) {
                     expanded = expanded,
                     onDismissRequest = { expanded = false },
                 ) {
-                    burger_list.forEach { item ->
+                    burgerlist.forEach { item ->
                         DropdownMenuItem(
                             text = { Text(text = item) },
                             onClick = {
@@ -245,13 +267,65 @@ fun CommandeBurger(onValidateClicked: () -> Unit) {
             Spacer(modifier = Modifier.width(8.dp))    }
 
         Button(
-            onClick = onValidateClicked, // Appel de la fonction de validation lorsque le bouton est cliqué
+            onClick = {
+                val infosCommande = Commande(
+                    nom,
+                    prenom,
+                    adresse,
+                    numeroTelephone,
+                    selectedBurger,
+                    heureLivraison
+                )
+                val idUtilisateur = 357 // Remplacer par l'id de l'utilisateur reçu par email
+
+                val jsonCommande = infosCommande.toJson() // Appel de la fonction toJson() pour obtenir le JSON de la commande
+
+                envoyerCommandeAuServeur(infosCommande, idUtilisateur,
+                    onSuccess = { success ->
+                        // Traitement en cas de succès
+                        if (success) {
+                            // Le JSON a été envoyé avec succès
+                            // Ajoutez ici le code que vous souhaitez exécuter en cas de succès
+                            println("Le JSON a été envoyé avec succès.")
+                        } else {
+                            // Gestion des erreurs si nécessaire
+                            println("Une erreur s'est produite lors de l'envoi du JSON.")
+                        }
+                    },
+                    onFailure = { errorMessage ->
+                        // Traitement en cas d'échec
+                        // Ajoutez ici le code que vous souhaitez exécuter en cas d'échec
+                        println("Erreur lors de l'envoi du JSON : $errorMessage")
+                    }
+                )
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 16.dp)
         ) {
             Text("Valider")
         }
+
+
+//        if (alertShown) {
+//            val title = if (envoiReussi) "Succès" else "Erreur"
+//            val message = if (envoiReussi) "Le JSON a été envoyé avec succès." else "Une erreur s'est produite lors de l'envoi du JSON."
+//            val buttonColor = if (envoiReussi) Color.Green else Color.Red
+//
+//            AlertDialog(
+//                onDismissRequest = { alertShown = false },
+//                title = { Text(title) },
+//                text = { Text(message) },
+//                confirmButton = {
+//                    Button(
+//                        onClick = { alertShown = false },
+//                        colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
+//                    ) {
+//                        Text("OK")
+//                    }
+//                }
+//            )
+//        }
     }
 }
 
@@ -276,4 +350,100 @@ fun textFieldColors(): TextFieldColors {
         focusedLabelColor = secondary,
         unfocusedLabelColor = secondary,
     )
+}
+
+data class Commande(
+    val nom: String,
+    val prenom: String,
+    val adresse: String,
+    val numeroTelephone: String,
+    val burger: String,
+    val heureLivraison: String
+) {
+    fun toJson(): String {
+        val msgJson = """
+        {
+            'firstname': '$nom',
+            'lastname': '$prenom',
+            'address': '$adresse',
+            'phone': '$numeroTelephone',
+            'burger': '$burger',
+            'delivery_time': '$heureLivraison'
+        }
+    """.trimIndent()
+
+        val jsonObject = JSONObject().apply {
+            put("id_shop", "1")
+            put("id_user", 357)
+            put("msg", msgJson.replace("\"", "'"))
+        }
+
+        return jsonObject.toString()
+    }
+
+
+}
+
+fun envoyerCommandeAuServeur(
+    infosCommande: Commande,
+    idUtilisateur: Int,
+    onSuccess: (Boolean) -> Unit,
+    onFailure: (String) -> Unit
+) {
+    val url = "http://test.api.catering.bluecodegames.com/user/order"
+    val client = OkHttpClient()
+
+    // Génération du JSON de la commande avec la fonction toJson()
+    val msgJson = infosCommande.toJson()
+
+    // Création de la requête
+    val request = Request.Builder()
+        .url(url)
+        .post(msgJson.toRequestBody("application/json; charset=utf-8".toMediaType())) // Utilisation directe du JSON généré
+        .build()
+
+    // Envoi de la requête asynchrone
+    client.newCall(request).enqueue(object : Callback {
+        override fun onFailure(call: Call, e: IOException) {
+            onFailure(e.message ?: "Unknown error")
+        }
+
+        override fun onResponse(call: Call, response: Response) {
+            val responseBody = response.body?.string()
+            if (response.isSuccessful) {
+                onSuccess(true)
+            } else {
+                onFailure("Failed to send JSON. Response: $responseBody")
+            }
+        }
+    })
+}
+
+
+
+
+@Composable
+fun JsonDisplay(jsonContent: String) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .size(50.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(
+                text = "JSON Content",
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            Text(
+                text = jsonContent,
+                fontSize = 16.sp,
+                modifier = Modifier.verticalScroll(rememberScrollState())
+            )
+        }
+    }
 }
