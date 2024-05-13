@@ -18,14 +18,13 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
-            android:name=".MainActivity2"
+            android:name=".ReviewActivity"
             android:exported="false"
-            android:label="@string/title_activity_main2"
+            android:label="@string/title_activity_review"
             android:theme="@style/Theme.TheoDroidBurger" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:theme="@style/Theme.TheoDroidBurger">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
