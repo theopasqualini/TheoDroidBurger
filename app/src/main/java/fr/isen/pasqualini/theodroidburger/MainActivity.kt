@@ -56,6 +56,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.io.IOException
 import java.util.Calendar
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -221,6 +222,7 @@ fun CommandeBurger(onValidateClicked: () -> Unit) {
             mContext,
             { _, mHour : Int, mMinute: Int ->
                 mTime.value = "$mHour:$mMinute"
+                heureLivraison = mTime.toString()
             }, mHour, mMinute, false
         )
 
@@ -260,36 +262,42 @@ fun CommandeBurger(onValidateClicked: () -> Unit) {
 
         Button(
             onClick = {
-                val infosCommande = Commande(
-                    nom,
-                    prenom,
-                    adresse,
-                    numeroTelephone,
-                    selectedBurger,
-                    heureLivraison
-                )
-                val idUtilisateur = 357 // Remplacer par l'id de l'utilisateur reçu par email
+                // Vérification des champs obligatoires
+                if (nom.isNotBlank() && prenom.isNotBlank() && adresse.isNotBlank() && numeroTelephone.isNotBlank() && heureLivraison.isNotBlank()) {
+                    val infosCommande = Commande(
+                        nom,
+                        prenom,
+                        adresse,
+                        numeroTelephone,
+                        selectedBurger,
+                        heureLivraison
+                    )
+                    val idUtilisateur = 357 // Remplacer par l'id de l'utilisateur reçu par email
 
-                val jsonCommande = infosCommande.toJson() // Appel de la fonction toJson() pour obtenir le JSON de la commande
+                    val jsonCommande = infosCommande.toJson() // Appel de la fonction toJson() pour obtenir le JSON de la commande
 
-                envoyerCommandeAuServeur(infosCommande, idUtilisateur,
-                    onSuccess = { success ->
-                        // Traitement en cas de succès
-                        if (success) {
-                            // Le JSON a été envoyé avec succès
-                            // Ajoutez ici le code que vous souhaitez exécuter en cas de succès
-                            println("Le JSON a été envoyé avec succès.")
-                        } else {
-                            // Gestion des erreurs si nécessaire
-                            println("Une erreur s'est produite lors de l'envoi du JSON.")
+                    envoyerCommandeAuServeur(infosCommande, idUtilisateur,
+                        onSuccess = { success ->
+                            // Traitement en cas de succès
+                            if (success) {
+                                // Le JSON a été envoyé avec succès
+                                // Ajoutez ici le code que vous souhaitez exécuter en cas de succès
+                                println("Le JSON a été envoyé avec succès.")
+                            } else {
+                                // Gestion des erreurs si nécessaire
+                                println("Une erreur s'est produite lors de l'envoi du JSON.")
+                            }
+                        },
+                        onFailure = { errorMessage ->
+                            // Traitement en cas d'échec
+                            // Ajoutez ici le code que vous souhaitez exécuter en cas d'échec
+                            println("Erreur lors de l'envoi du JSON : $errorMessage")
                         }
-                    },
-                    onFailure = { errorMessage ->
-                        // Traitement en cas d'échec
-                        // Ajoutez ici le code que vous souhaitez exécuter en cas d'échec
-                        println("Erreur lors de l'envoi du JSON : $errorMessage")
-                    }
-                )
+                    )
+                } else {
+                    // Affichage d'un message d'erreur si des champs obligatoires sont vides
+                    Toast.makeText(context, "Veuillez remplir tous les champs obligatoires", Toast.LENGTH_SHORT).show()
+                }
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -297,6 +305,7 @@ fun CommandeBurger(onValidateClicked: () -> Unit) {
         ) {
             Text("Valider")
         }
+
 
 
 //        if (alertShown) {
