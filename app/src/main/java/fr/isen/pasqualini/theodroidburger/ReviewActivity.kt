@@ -1,11 +1,13 @@
 package fr.isen.pasqualini.theodroidburger
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,10 +17,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -28,14 +31,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import fr.isen.pasqualini.theodroidburger.ui.theme.TheoDroidBurgerTheme
-import kotlinx.coroutines.delay
-import okhttp3.*
+import androidx.compose.ui.unit.sp
+import fr.isen.pasqualini.theodroidburger.ui.theme.secondary
+import okhttp3.Call
+import okhttp3.Callback
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
 import org.json.JSONObject
 import java.io.IOException
 
@@ -43,6 +52,12 @@ class ReviewActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            BackButton(
+
+                onBackPressed = {
+                    // Logique de retour
+                }
+            )
             Head()
             ReviewActivityContent()
         }
@@ -66,8 +81,17 @@ fun Head() {
                 .size(300.dp)
                 .padding(bottom = 16.dp)
         )
+
+        // Texte "Commandes précédentes:"
+        Text(
+            text = "Commandes précédentes:",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
     }
 }
+
 
 @Composable
 fun ReviewActivityContent() {
@@ -221,6 +245,34 @@ data class Order(
     val burger: String,
     val deliveryTime: String
 )
+
+
+@Composable
+fun BackButton(
+    onBackPressed: () -> Unit
+) {
+    val context = LocalContext.current
+
+    Button(
+        onClick = {
+            onBackPressed()
+            val intent = Intent(context, MainActivity::class.java)
+            context.startActivity(intent)
+        },
+        colors = ButtonDefaults.buttonColors(containerColor = secondary),
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier
+            .padding(16.dp)
+            .size(60.dp)
+    ) {
+        Text(
+            text = "<",
+            color = Color.White,
+            fontSize = 24.sp
+        )
+    }
+}
+
 
 
 

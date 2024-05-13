@@ -319,6 +319,8 @@ fun CommandeBurger(onValidateClicked: () -> Unit) {
                             println("Erreur lors de l'envoi du JSON : $errorMessage")
                         }
                     )
+                    val intent = Intent(mContext, ReviewActivity::class.java)
+                    mContext.startActivity(intent)
                 } else {
                     // Affichage d'un message d'erreur si des champs obligatoires sont vides
                     Toast.makeText(context, "Veuillez remplir tous les champs obligatoires", Toast.LENGTH_SHORT).show()
